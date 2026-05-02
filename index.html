@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CineBook - Movie Tickets</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #f0f0f0; min-height: 100vh; }
+
+    nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 60px; background: rgba(10,10,15,0.95);
+      border-bottom: 1px solid #1e1e2e; position: sticky; top: 0; z-index: 100;
+    }
+    .logo { font-size: 1.6rem; font-weight: 800; color: #f5a623; letter-spacing: 1px; }
+    .logo span { color: #fff; }
+    nav ul { list-style: none; display: flex; gap: 28px; }
+    nav ul a { color: #aaa; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    nav ul a:hover { color: #f5a623; }
+    .nav-btn { background: #f5a623; color: #0a0a0f; padding: 8px 20px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; text-decoration: none; }
+
+    .hero {
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 50%, #0a0a0f 100%);
+      padding: 70px 60px; text-align: center; border-bottom: 1px solid #1e1e2e;
+    }
+    .hero h1 { font-size: 3rem; font-weight: 800; margin-bottom: 12px; }
+    .hero h1 span { color: #f5a623; }
+    .hero p { color: #888; font-size: 1rem; margin-bottom: 36px; }
+
+    .search-bar { display: flex; justify-content: center; max-width: 580px; margin: 0 auto; }
+    .search-bar input, .search-bar select {
+      padding: 14px 18px; border: 1px solid #2e2e3e;
+      background: #141420; color: #f0f0f0; font-size: 0.9rem; outline: none;
+    }
+    .search-bar input { flex: 1; border-radius: 8px 0 0 8px; border-right: none; }
+    .search-bar select { width: 140px; border-left: none; border-right: none; }
+    .search-bar button {
+      padding: 14px 28px; background: #f5a623; color: #0a0a0f;
+      font-weight: 700; border: none; border-radius: 0 8px 8px 0;
+      cursor: pointer; font-size: 0.9rem;
+    }
+
+    .section-title {
+      padding: 50px 60px 24px; display: flex;
+      justify-content: space-between; align-items: center;
+    }
+    .section-title h2 { font-size: 1.4rem; font-weight: 700; }
+    .section-title h2 span { color: #f5a623; }
+    .section-title a { color: #f5a623; font-size: 0.85rem; text-decoration: none; }
+
+    .movies {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 24px; padding: 0 60px 60px;
+    }
+    .movie-card {
+      background: #141420; border-radius: 10px; overflow: hidden;
+      border: 1px solid #1e1e2e; transition: transform 0.2s, border-color 0.2s; cursor: pointer;
+    }
+    .movie-card:hover { transform: translateY(-4px); border-color: #f5a623; }
+    .movie-poster {
+      height: 280px; display: flex; align-items: center;
+      justify-content: center; font-size: 4rem; position: relative;
+    }
+    .badge {
+      position: absolute; top: 10px; left: 10px;
+      padding: 3px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 700;
+    }
+    .badge.new { background: #f5a623; color: #0a0a0f; }
+    .badge.hot { background: #e53e3e; color: #fff; }
+    .badge.soon { background: #553c9a; color: #fff; }
+    .rating {
+      position: absolute; bottom: 10px; right: 10px;
+      background: rgba(0,0,0,0.7); padding: 3px 8px;
+      border-radius: 4px; font-size: 0.78rem; color: #f5a623;
+    }
+    .movie-info { padding: 14px; }
+    .movie-info h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 5px; }
+    .movie-info .meta { font-size: 0.78rem; color: #666; margin-bottom: 12px; }
+    .genre {
+      display: inline-block; padding: 2px 8px; background: #1e1e2e;
+      border-radius: 4px; font-size: 0.72rem; color: #aaa; margin-right: 4px; margin-bottom: 8px;
+    }
+    .book-btn {
+      display: block; width: 100%; padding: 9px; background: #f5a623;
+      color: #0a0a0f; font-weight: 700; font-size: 0.82rem;
+      border: none; border-radius: 6px; cursor: pointer; text-align: center;
+    }
+    .book-btn:hover { opacity: 0.85; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #141420; border: 1px solid #2e2e3e; border-radius: 12px;
+      width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; padding: 36px;
+    }
+    .modal h2 { font-size: 1.3rem; margin-bottom: 6px; }
+    .modal .sub { color: #888; font-size: 0.85rem; margin-bottom: 24px; }
+    .modal label {
+      display: block; font-size: 0.8rem; color: #aaa;
+      margin-bottom: 6px; margin-top: 16px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .modal input, .modal select {
+      width: 100%; padding: 11px 14px; background: #0a0a0f;
+      border: 1px solid #2e2e3e; border-radius: 6px; color: #f0f0f0; font-size: 0.9rem; outline: none;
+    }
+    .modal input:focus, .modal select:focus { border-color: #f5a623; }
+
+    .seat-section { margin-top: 16px; }
+    .seat-section p { font-size: 0.8rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .screen {
+      background: linear-gradient(to bottom, #f5a623, #c47a10);
+      text-align: center; padding: 5px; border-radius: 4px;
+      font-size: 0.7rem; color: #0a0a0f; font-weight: 700;
+      margin-bottom: 16px; letter-spacing: 2px;
+    }
+    .seats { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+    .seat-row { display: flex; gap: 6px; }
+    .seat {
+      width: 28px; height: 26px; background: #1e1e2e;
+      border: 1px solid #2e2e3e; border-radius: 4px 4px 0 0;
+      cursor: pointer; font-size: 0.6rem; color: #555;
+      display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+    }
+    .seat:hover:not(.taken) { background: #f5a623; color: #0a0a0f; }
+    .seat.selected { background: #f5a623; color: #0a0a0f; border-color: #f5a623; }
+    .seat.taken { background: #2e1e1e; border-color: #3e2e2e; cursor: not-allowed; color: #3e2e2e; }
+
+    .seat-legend {
+      display: flex; gap: 16px; margin-top: 12px;
+      font-size: 0.75rem; color: #888; justify-content: center;
+    }
+    .seat-legend span { display: flex; align-items: center; gap: 5px; }
+    .dot { width: 12px; height: 12px; border-radius: 2px; }
+
+    .selected-info {
+      margin-top: 14px; padding: 10px 14px;
+      background: #0a0a0f; border-radius: 6px; font-size: 0.83rem; color: #aaa;
+    }
+    .selected-info strong { color: #f5a623; }
+
+    .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+    .modal-actions button {
+      flex: 1; padding: 12px; border-radius: 6px;
+      font-weight: 700; font-size: 0.9rem; cursor: pointer; border: none;
+    }
+    .btn-cancel { background: #1e1e2e; color: #aaa; }
+    .btn-confirm { background: #f5a623; color: #0a0a0f; }
+
+    .success-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85); z-index: 300;
+      align-items: center; justify-content: center;
+    }
+    .success-overlay.active { display: flex; }
+    .success-box {
+      background: #141420; border: 1px solid #2e2e3e;
+      border-radius: 12px; padding: 48px 40px; text-align: center; max-width: 380px;
+    }
+    .success-box .tick { font-size: 3.5rem; margin-bottom: 16px; }
+    .success-box h2 { font-size: 1.4rem; margin-bottom: 10px; color: #f5a623; }
+    .success-box p { color: #888; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6; }
+    .success-box button {
+      background: #f5a623; color: #0a0a0f; border: none;
+      padding: 11px 32px; border-radius: 6px; font-weight: 700; cursor: pointer;
+    }
+
+    .offers { display: flex; gap: 20px; padding: 0 60px 60px; flex-wrap: wrap; }
+    .offer-card {
+      flex: 1; min-width: 240px;
+      background: linear-gradient(135deg, #1a0a2e, #2e1a0a);
+      border: 1px solid #2e2e3e; border-radius: 10px;
+      padding: 24px; display: flex; align-items: center; gap: 16px;
+    }
+    .offer-icon { font-size: 2rem; }
+    .offer-card h3 { font-size: 0.95rem; color: #f5a623; margin-bottom: 4px; }
+    .offer-card p { font-size: 0.8rem; color: #888; line-height: 1.5; }
+
+    footer {
+      border-top: 1px solid #1e1e2e; padding: 30px 60px;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.82rem; color: #444; flex-wrap: wrap; gap: 12px;
+    }
+    footer a { color: #666; text-decoration: none; margin-left: 20px; }
+    footer a:hover { color: #f5a623; }
+
+    @media (max-width: 600px) {
+      nav { padding: 16px 20px; }
+      nav ul { display: none; }
+      .hero { padding: 50px 20px; }
+      .hero h1 { font-size: 2rem; }
+      .section-title, .movies, .offers { padding-left: 20px; padding-right: 20px; }
+      .search-bar { flex-direction: column; }
+      .search-bar input, .search-bar select, .search-bar button {
+        border-radius: 8px; border: 1px solid #2e2e3e; width: 100%;
+      }
+      footer { padding: 24px 20px; flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Cine<span>Book</span></div>
+  <ul>
+    <li><a href="#">Movies</a></li>
+    <li><a href="#">Cinemas</a></li>
+    <li><a href="#">Offers</a></li>
+  </ul>
+  <a href="#" class="nav-btn">Sign In</a>
+</nav>
+
+<section class="hero">
+  <h1>Book Your <span>Perfect Seat</span></h1>
+  <p>Latest movies. Best seats. Instant confirmation.</p>
+  <div class="search-bar">
+    <input type="text" placeholder="Search movies..." />
+    <select>
+      <option>All Cities</option>
+      <option>Chennai</option>
+      <option>Mumbai</option>
+      <option>Delhi</option>
+      <option>Bangalore</option>
+      <option>Hyderabad</option>
+    </select>
+    <button>Search</button>
+  </div>
+</section>
+
+<div class="section-title">
+  <h2>Now <span>Showing</span></h2>
+  <a href="#">View All →</a>
+</div>
+<div class="movies" id="movieGrid"></div>
+
+<div class="section-title"><h2>Today's <span>Offers</span></h2></div>
+<div class="offers">
+  <div class="offer-card">
+    <div class="offer-icon">🎟️</div>
+    <div><h3>Buy 2 Get 1 Free</h3><p>Valid on weekdays before 6 PM. Use code <strong style="color:#f5a623">TRIO</strong>.</p></div>
+  </div>
+  <div class="offer-card">
+    <div class="offer-icon">💳</div>
+    <div><h3>20% Off on UPI</h3><p>Pay via any UPI app and get flat 20% off. Max discount ₹100.</p></div>
+  </div>
+  <div class="offer-card">
+    <div class="offer-icon">🍿</div>
+    <div><h3>Free Popcorn Combo</h3><p>Book premium seats and get a free large popcorn + drink.</p></div>
+  </div>
+</div>
+
+<footer>
+  <div>© 2026 CineBook. All rights reserved.</div>
+  <div><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Help</a><a href="#">Contact</a></div>
+</footer>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Book Tickets</h2>
+    <p class="sub">Select your preferred show and seats</p>
+    <label>Your Name</label>
+    <input type="text" id="userName" placeholder="Enter your name" />
+    <label>Date</label>
+    <input type="date" id="bookDate" />
+    <label>Show Time</label>
+    <select id="showTime">
+      <option>10:00 AM</option>
+      <option>1:30 PM</option>
+      <option>4:00 PM</option>
+      <option>7:15 PM</option>
+      <option>10:00 PM</option>
+    </select>
+    <div class="seat-section">
+      <p>Select Seats</p>
+      <div class="screen">SCREEN</div>
+      <div class="seats" id="seatGrid"></div>
+      <div class="seat-legend">
+        <span><div class="dot" style="background:#1e1e2e;border:1px solid #2e2e3e"></div> Available</span>
+        <span><div class="dot" style="background:#f5a623"></div> Selected</span>
+        <span><div class="dot" style="background:#2e1e1e"></div> Taken</span>
+      </div>
+      <div class="selected-info" id="selectedInfo">No seats selected</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmBooking()">Confirm & Pay</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-box">
+    <div class="tick">🎉</div>
+    <h2>Booking Confirmed!</h2>
+    <p id="successMsg"></p>
+    <button onclick="closeSuccess()">Done</button>
+  </div>
+</div>
+
+<script>
+  const movies = [
+    { title: "Galactic Storm", genre: ["Sci-Fi","Action"], rating: "8.4", badge: "hot", color: "#0d1b2e", emoji: "🚀" },
+    { title: "The Last Shadow", genre: ["Thriller"], rating: "7.9", badge: "new", color: "#1a0d0d", emoji: "🕵️" },
+    { title: "Bloom", genre: ["Romance","Drama"], rating: "8.1", badge: "new", color: "#1a0d1a", emoji: "🌸" },
+    { title: "Iron Uprising", genre: ["Action"], rating: "8.7", badge: "hot", color: "#1a1a0d", emoji: "⚔️" },
+    { title: "Echoes", genre: ["Mystery","Drama"], rating: "7.6", badge: "", color: "#0d1a1a", emoji: "🎭" },
+    { title: "Neon Void", genre: ["Sci-Fi"], rating: "8.0", badge: "soon", color: "#1a0d1a", emoji: "🌌" },
+    { title: "Wildfire", genre: ["Adventure"], rating: "7.8", badge: "", color: "#1a0d00", emoji: "🔥" },
+    { title: "Silent Depths", genre: ["Horror"], rating: "8.3", badge: "hot", color: "#0d0d1a", emoji: "🌊" },
+  ];
+
+  const grid = document.getElementById('movieGrid');
+  movies.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'movie-card';
+    const badgeHtml = m.badge ? `<div class="badge ${m.badge}">${m.badge.toUpperCase()}</div>` : '';
+    const genres = m.genre.map(g => `<span class="genre">${g}</span>`).join('');
+    card.innerHTML = `
+      <div class="movie-poster" style="background:${m.color}">
+        ${badgeHtml}
+        <span>${m.emoji}</span>
+        <div class="rating">⭐ ${m.rating}</div>
+      </div>
+      <div class="movie-info">
+        <h3>${m.title}</h3>
+        <div class="meta">2h 18m · English / Hindi</div>
+        <div>${genres}</div>
+        <button class="book-btn" onclick="openModal('${m.title}','${m.emoji}')">Book Tickets</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  const takenSeats = ['A2','A5','B3','B7','C1','C6','D4','D5','E2','E8'];
+  let selectedSeats = [];
+
+  function buildSeats() {
+    const seatGrid = document.getElementById('seatGrid');
+    seatGrid.innerHTML = '';
+    ['A','B','C','D','E'].forEach(row => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'seat-row';
+      for (let i = 1; i <= 8; i++) {
+        const id = row + i;
+        const seat = document.createElement('div');
+        seat.className = 'seat' + (takenSeats.includes(id) ? ' taken' : '');
+        seat.textContent = id;
+        if (!takenSeats.includes(id)) seat.onclick = () => toggleSeat(seat, id);
+        rowEl.appendChild(seat);
+      }
+      seatGrid.appendChild(rowEl);
+    });
+  }
+
+  function toggleSeat(el, id) {
+    if (selectedSeats.includes(id)) {
+      selectedSeats = selectedSeats.filter(s => s !== id);
+      el.classList.remove('selected');
+    } else {
+      selectedSeats.push(id);
+      el.classList.add('selected');
+    }
+    updateInfo();
+  }
+
+  function updateInfo() {
+    const info = document.getElementById('selectedInfo');
+    info.innerHTML = selectedSeats.length === 0
+      ? 'No seats selected'
+      : `Seats: <strong>${selectedSeats.join(', ')}</strong> &nbsp;|&nbsp; Total: <strong>₹${selectedSeats.length * 250}</strong>`;
+  }
+
+  function openModal(title, emoji) {
+    selectedSeats = [];
+    document.getElementById('modalTitle').textContent = emoji + ' ' + title;
+    document.getElementById('userName').value = '';
+    document.getElementById('bookDate').value = new Date().toISOString().split('T')[0];
+    buildSeats();
+    updateInfo();
+    document.getElementById('modalOverlay').classList.add('active');
+  }
+
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+
+  function confirmBooking() {
+    const name = document.getElementById('userName').value.trim();
+    const date = document.getElementById('bookDate').value;
+    const time = document.getElementById('showTime').value;
+    if (!name) return alert('Please enter your name.');
+    if (!selectedSeats.length) return alert('Please select at least one seat.');
+    closeModal();
+    document.getElementById('successMsg').innerHTML =
+      `<strong>${name}</strong>, your ${selectedSeats.length} seat(s) <strong>(${selectedSeats.join(', ')})</strong> for the <strong>${time}</strong> show on <strong>${date}</strong> are confirmed.<br><br>Total Paid: <strong style="color:#f5a623">₹${selectedSeats.length * 250}</strong>`;
+    document.getElementById('successOverlay').classList.add('active');
+  }
+
+  function closeSuccess() { document.getElementById('successOverlay').classList.remove('active'); }
+
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+</body>
+</html>
